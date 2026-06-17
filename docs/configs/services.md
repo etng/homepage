@@ -209,6 +209,24 @@ Services may have descriptions,
 
 <img width="1038" alt="Service Descriptions" src="https://user-images.githubusercontent.com/82196/187040817-11a3d0eb-c997-4ef9-8f06-2d03a11332b6.png">
 
+## Disabled Services
+
+Services can be kept in `services.yaml` without being shown by setting `disabled: true` or `profile: disabled`.
+
+```yaml
+- Group A:
+    - Service A:
+        href: http://localhost/
+
+    - Service B:
+        disabled: true
+        href: http://localhost/
+
+    - Service C:
+        profile: disabled
+        href: http://localhost/
+```
+
 ## Icons
 
 Services may have an icon attached to them, you can use icons from [Dashboard Icons](https://github.com/homarr-labs/dashboard-icons) automatically, by passing the name of the icon, with, or without `.png`, `.webp` or `.svg` to specify the desired version.

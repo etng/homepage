@@ -160,6 +160,15 @@ When your Docker instance has been properly configured, this service will be aut
 
 **When using docker swarm use _deploy/labels_**
 
+To keep labels in place without showing a discovered service, set `homepage.disabled=true` or `homepage.profile=disabled`.
+
+```yaml
+labels:
+  - homepage.group=Media
+  - homepage.name=Emby
+  - homepage.disabled=true
+```
+
 ## Widgets
 
 You may also configure widgets, along with the standard service entry, again, using dot notation.

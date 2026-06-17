@@ -14,6 +14,10 @@ import { parseVersionForUrl } from "utils/proxy/api-helpers";
 
 const logger = createLogger("service-helpers");
 
+function isDisabledService(service) {
+  return service?.disabled === true || service?.disabled === "true" || service?.profile === "disabled";
+}
+
 function parseServicesToGroups(services) {
   if (!services) {
     return [];
@@ -33,6 +37,9 @@ function parseServicesToGroups(services) {
       if (Array.isArray(entries[entryName])) {
         groups = groups.concat(parseServicesToGroups([{ [entryName]: entries[entryName] }]));
       } else {
+        if (isDisabledService(entries[entryName])) {
+          return;
+        }
         serviceGroupServices.push({
           name: entryName,
           ...entries[entryName],
@@ -127,6 +134,10 @@ export async function servicesFromDocker() {
                 "",
               )}'. Ensure required labels are present.`,
             );
+            return null;
+          }
+
+          if (isDisabledService(constructedService)) {
             return null;
           }
 

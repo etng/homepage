@@ -157,6 +157,25 @@ describe("utils/config/service-helpers", () => {
     expect(state.logger.warn).toHaveBeenCalled();
   });
 
+  it("servicesFromConfig skips services marked disabled or in the disabled profile", async () => {
+    state.servicesYaml = [
+      {
+        Main: [
+          { EnabledSvc: { icon: "ok" } },
+          { DisabledSvc: { disabled: true, icon: "no" } },
+          { DisabledStringSvc: { disabled: "true", icon: "no" } },
+          { DisabledProfileSvc: { profile: "disabled", icon: "no" } },
+          { ManualProfileSvc: { profile: "manual", icon: "ok" } },
+        ],
+      },
+    ];
+
+    const mod = await import("./service-helpers");
+    const groups = await mod.servicesFromConfig();
+
+    expect(groups[0].services.map((service) => service.name)).toEqual(["EnabledSvc", "ManualProfileSvc"]);
+  });
+
   it("cleanServiceGroups normalizes weights, moves widget->widgets, and parses per-widget settings", async () => {
     const mod = await import("./service-helpers");
     const { cleanServiceGroups } = mod;
@@ -587,6 +606,45 @@ describe("utils/config/service-helpers", () => {
     // The instance.bar.* labels should be ignored when instanceName=foo.
     expect(JSON.stringify(discoveredGroups)).not.toContain("Ignore");
     expect(state.logger.error).toHaveBeenCalled();
+  });
+
+  it("servicesFromDocker skips containers marked disabled or in the disabled profile", async () => {
+    state.dockerYaml = { "docker-local": {} };
+    state.dockerContainers = [
+      {
+        Names: ["/enabled"],
+        Labels: {
+          "homepage.group": "G",
+          "homepage.name": "Enabled",
+        },
+      },
+      {
+        Names: ["/disabled"],
+        Labels: {
+          "homepage.group": "G",
+          "homepage.name": "Disabled",
+          "homepage.disabled": "true",
+        },
+      },
+      {
+        Names: ["/disabled-profile"],
+        Labels: {
+          "homepage.group": "G",
+          "homepage.name": "DisabledProfile",
+          "homepage.profile": "disabled",
+        },
+      },
+    ];
+
+    const mod = await import("./service-helpers");
+    const discoveredGroups = await mod.servicesFromDocker();
+
+    expect(discoveredGroups).toEqual([
+      {
+        name: "G",
+        services: [expect.objectContaining({ name: "Enabled", container: "enabled" })],
+      },
+    ]);
   });
 
   it("servicesFromDocker tolerates per-server failures and still returns other results", async () => {
